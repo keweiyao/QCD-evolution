@@ -1,0 +1,8 @@
+Coupled LO DGLAP
+
+C++ version:
+cd build && cmake ..
+make install
+Run ./test 
+
+Or try the ipython notebook, it illustrate what the c++ version does
