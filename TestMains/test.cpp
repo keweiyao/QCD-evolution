@@ -12,7 +12,7 @@ int main() {
     double t = tmin;
     int Nt = 21;
     double dt = (tmax-tmin)/Nt;
-    int Nz = 201;
+    int Nz = 401;
     double zmin = 1e-3;
     double zmax = 1.-zmin;
     double dlnz = std::log(zmax/zmin)/(Nz-1);
@@ -24,9 +24,9 @@ int main() {
     }
     FFgrids FF, dFF;
     std::vector<double> temp; temp.resize(Nz);
-    std::vector<std::string> comp{"qv","g","qqbar"};
-    std::vector<std::string> nonsinglets{"qv"};
-    std::vector<std::string> singlets{"g","qqbar"};
+    std::vector<std::string> comp{"uv","dv","sv","g","uubar","ddbar","ssbar"};
+    std::vector<std::string> nonsinglets{"uv","dv","sv"};
+    std::vector<std::string> singlets{"g","uubar","ddbar","ssbar"};
     for (auto & it : comp) {
         FF.insert(std::make_pair(it, temp));
         dFF.insert(std::make_pair(it, temp));
@@ -40,47 +40,43 @@ int main() {
         }
     }
     std::ofstream fi("ic.dat");
+    for (auto & it : comp) fi << "# " << it << "\t";
+    fi << std::endl; 
     for (int i=0; i<Nz; i++) {
-        for (auto & it : comp) fi << FF[it][i] << " ";
+        fi << z[i] << "\t";
+        for (auto & it : comp) fi << FF[it][i] << "\t";
         fi << std::endl;
     }   
 
-    std::cout << "start non-singlet evolution" << std::endl;
+    std::cout << "start decoupled non-singlet evolution" << std::endl;
     for (int i=0; i<Nt; i++) {
-        std::cout << i << std::endl;
-        // RK-4
-        FFgrids k1, k2, k3, k4, FF1=FF, FF2=FF, FF3=FF;
-        Convolve_Valance(t, dlnz, z, zover1mz, FF, dFF, nonsinglets);
-        k1 = dFF;
-        for (auto & it : nonsinglets)
-            for (int i=0; i<Nz; i++)
-                FF1[it][i] += k1[it][i]*dt/2.;
+        for (auto & it : nonsinglets){    
+            // RK-4
+            FFgrids k1, k2, k3, k4, FF1=FF, FF2=FF, FF3=FF;
 
-        Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF1, dFF, nonsinglets);
-        k2 = dFF;
-        for (auto & it : nonsinglets)
-            for (int i=0; i<Nz; i++)
-                FF2[it][i] += k2[it][i]*dt/2.;
+            Convolve_Valance(t, dlnz, z, zover1mz, FF, dFF, nonsinglets);
+            k1 = dFF;        
+            for (int i=0; i<Nz; i++) FF1[it][i] += k1[it][i]*dt/2.;
 
-        Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF2, dFF, nonsinglets);
-        k3 = dFF;
-        for (auto & it : nonsinglets)
-            for (int i=0; i<Nz; i++)
-                FF3[it][i] += k3[it][i]*dt;
+            Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF1, dFF, nonsinglets);
+            k2 = dFF;
+            for (int i=0; i<Nz; i++) FF2[it][i] += k2[it][i]*dt/2.;
 
-        Convolve_Valance(t+dt, dlnz, z, zover1mz, FF3, dFF, nonsinglets);
-        k4 = dFF;
+            Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF2, dFF, nonsinglets);
+            k3 = dFF;
+            for (int i=0; i<Nz; i++) FF3[it][i] += k3[it][i]*dt;
 
-        for (auto & it : nonsinglets)
-            for (int i=0; i<Nz; i++)
-                FF[it][i] += (k1[it][i] + 2.*k2[it][i] + 2.*k3[it][i] + k4[it][i]) * dt/6.;
+            Convolve_Valance(t+dt, dlnz, z, zover1mz, FF3, dFF, nonsinglets);
+            k4 = dFF;
+
+            for (int i=0; i<Nz; i++) FF[it][i] += (k1[it][i] + 2.*k2[it][i] + 2.*k3[it][i] + k4[it][i]) * dt/6.;
+        }
         t+=dt;
     }
 
 
-    std::cout << "start coupled singlet evolution" << std::endl;
+    std::cout << "start coupled singlets evolution" << std::endl;
     for (int i=0; i<Nt; i++) {
-        std::cout << i << std::endl;
         // RK-4
         FFgrids k1, k2, k3, k4, FF1=FF, FF2=FF, FF3=FF;
         Convolve_Singlets(t, dlnz, z, zover1mz, FF, dFF, singlets);
@@ -112,8 +108,11 @@ int main() {
 
 
     std::ofstream ff("fs.dat");
+    for (auto & it : comp) ff << "# " << it << "\t";
+    ff << std::endl; 
     for (int i=0; i<Nz; i++) {
-        for (auto & it : comp) ff << FF[it][i] << " ";
+        ff << z[i] << "\t";
+        for (auto & it : comp) ff << FF[it][i] << "\t";
         ff << std::endl;
     }   
 

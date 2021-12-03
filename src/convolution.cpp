@@ -77,30 +77,33 @@ bool Convolve_Singlets(const double & t, const double & dlnz,
         RQQgrids.push_back(Rqq(iz, kt2));
         DQQgrids.push_back(Dqq(kt2));
     }
-    auto it = singlets[0];
-    auto it2 = singlets[1];
+    auto ig = singlets[0]; // gluon
+    auto qqbars = singlets;
+    qqbars.erase(qqbars.begin()); // qqbar flavors
     // gluon frag
     // g->g
     std::vector<double> deltaS;
-    ConvolveWithSingular(dlnz, zover1mz, FF[it], RGGgrids, deltaS);
+    ConvolveWithSingular(dlnz, zover1mz, FF[ig], RGGgrids, deltaS);
     std::vector<double> deltaR;
-    ConvolveWithRegular(dlnz, z, FF[it], AGGgrids, deltaR);
-    for (int i=0; i<z.size(); i++)  dFF[it][i] = deltaS[i] + deltaR[i] + DGGgrids[i]*FF[it][i];
+    ConvolveWithRegular(dlnz, z, FF[ig], AGGgrids, deltaR);
+    for (int i=0; i<z.size(); i++)  dFF[ig][i] = deltaS[i] + deltaR[i] + DGGgrids[i]*FF[ig][i];
     // g->q
-    std::vector<double> deltaR2;
-    ConvolveWithRegular(dlnz, z, FF[it2], AGQgrids, deltaR2);
-    for (int i=0; i<z.size(); i++)  dFF[it][i] += deltaR2[i]/(2.*Nf);
-
+    for (auto & iq : qqbars) {
+        std::vector<double> deltaR;
+        ConvolveWithRegular(dlnz, z, FF[iq], AGQgrids, deltaR);
+        for (int i=0; i<z.size(); i++)  dFF[ig][i] += deltaR[i];
+    }
     // quark frag
     // q->q
-    std::vector<double> deltaS3;
-    ConvolveWithSingular(dlnz, zover1mz, FF[it2], RQQgrids, deltaS3);
-    for (int i=0; i<z.size(); i++)  dFF[it2][i] = deltaS3[i] + DQQgrids[i]*FF[it2][i];
-    // q->g
-    std::vector<double> deltaR4;
-    ConvolveWithRegular(dlnz, z, FF[it], AQGgrids, deltaR4);
-    for (int i=0; i<z.size(); i++)  dFF[it2][i] += deltaR4[i]*(2.*Nf);
-
+    for (auto & iq : qqbars) {
+        std::vector<double> deltaS;
+        ConvolveWithSingular(dlnz, zover1mz, FF[iq], RQQgrids, deltaS);
+        for (int i=0; i<z.size(); i++)  dFF[iq][i] = deltaS[i] + DQQgrids[i]*FF[iq][i];
+        // q->g
+        std::vector<double> deltaR;
+        ConvolveWithRegular(dlnz, z, FF[ig], AQGgrids, deltaR);
+        for (int i=0; i<z.size(); i++)  dFF[iq][i] += deltaR[i];
+    }
 
     return true;
 }
