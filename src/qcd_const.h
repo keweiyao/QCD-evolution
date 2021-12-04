@@ -1,3 +1,5 @@
+#include <map>
+#include <string>
 namespace qcd{
    extern const double Nc;
    extern const double CA;
@@ -11,4 +13,5 @@ namespace qcd{
    extern const double CA_over9;
    extern const double Lambda2;
    extern const double b0;
+   extern std::map<char, double> mass_table;
 }

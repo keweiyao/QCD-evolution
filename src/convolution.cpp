@@ -40,18 +40,43 @@ bool Convolve_Valance(const double & t, const double & dlnz,
                       FFgrids & FF, FFgrids & dFF, std::vector<std::string> flavors) {
     
     double Q2 = qcd::Lambda2*std::exp(std::exp(t/qcd::b0));
-    std::vector<double> Rgrids, Dgrids; Rgrids.clear(); Dgrids.clear();
-    for (auto & iz : z) {
-        double kt2 = iz*(1-iz)*Q2;
-        Rgrids.push_back(Rqq(iz, kt2));
-        Dgrids.push_back(Dqq(kt2));
-    }
+
     for (auto & it : flavors) {
-        std::vector<double> deltaDFF;
+        
         // q->q
-        bool status = ConvolveWithSingular(dlnz, zover1mz, FF[it], Rgrids, deltaDFF);
-        for (int i=0; i<z.size(); i++) {
-            dFF[it][i] = deltaDFF[i] + Dgrids[i]*FF[it][i];
+        double mass = qcd::mass_table[it.at(0)];
+        if (mass < 1.0 ) { // treat as light
+            std::vector<double> deltaS;
+            std::vector<double> Rgrids, Dgrids; Rgrids.clear(); Dgrids.clear();
+            for (auto & iz : z) {
+                double kt2 = iz*(1-iz)*Q2;
+                Rgrids.push_back(Rqq(iz, kt2));
+                Dgrids.push_back(Dqq(kt2));
+            }
+            ConvolveWithSingular(dlnz, zover1mz, FF[it], Rgrids, deltaS);
+            for (int i=0; i<z.size(); i++) dFF[it][i] = deltaS[i] + Dgrids[i]*FF[it][i];
+        } else { // heavy quark
+            double M2 = std::pow(mass, 2);
+            double M2overQ2 = M2/Q2;
+            double xmin = M2/(M2+Q2);
+            std::vector<double> RQQgrids, AQQgrids, DQQgrids; 
+            RQQgrids.clear(); AQQgrids.clear(); DQQgrids.clear();
+            for (auto & iz : z) {
+                double kt2_over_M2 = iz*(1.-iz)*Q2/M2 - std::pow(1.-iz,2);
+                if (iz>xmin) {
+                    RQQgrids.push_back(RQQ(iz, M2overQ2));
+                    AQQgrids.push_back(AQQ(iz, M2overQ2));
+                }
+                else {
+                    RQQgrids.push_back(0.0);
+                    AQQgrids.push_back(0.0);
+                }
+                DQQgrids.push_back(DQQ(M2overQ2));
+            }
+            std::vector<double> deltaS, deltaR;
+            ConvolveWithSingular(dlnz, zover1mz, FF[it], RQQgrids, deltaS);
+            ConvolveWithRegular(dlnz, z, FF[it], AQQgrids, deltaR);
+            for (int i=0; i<z.size(); i++) dFF[it][i] = deltaS[i] + deltaR[i] + DQQgrids[i]*FF[it][i];
         }
     }
     return true;
@@ -62,20 +87,20 @@ bool Convolve_Singlets(const double & t, const double & dlnz,
                       FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets) {
     
     double Q2 = qcd::Lambda2*std::exp(std::exp(t/qcd::b0));
-    int Nf = 3;
     std::vector<double> RGGgrids, RQQgrids, AGGgrids, AQGgrids, 
-                        AGQgrids, DGGgrids, DQQgrids; 
+                        AGQgrids, DGGgrids, DQQgrids, DGQgrids; 
     RGGgrids.clear(); RQQgrids.clear(); AGGgrids.clear(); AQGgrids.clear(); 
-    AGQgrids.clear(); DGGgrids.clear(); DQQgrids.clear();
+    AGQgrids.clear(); DGGgrids.clear(); DQQgrids.clear(); DGQgrids.clear(); 
     for (auto & iz : z) {
         double kt2 = iz*(1-iz)*Q2;
         RGGgrids.push_back(Rgg(iz, kt2));
         AGGgrids.push_back(Agg(iz, kt2));
         AGQgrids.push_back(Agq(iz, kt2));
         AQGgrids.push_back(Aqg(iz, kt2));
-        DGGgrids.push_back(Dgg(kt2, Nf));
+        DGGgrids.push_back(Dgg(kt2));
         RQQgrids.push_back(Rqq(iz, kt2));
         DQQgrids.push_back(Dqq(kt2));
+        DGQgrids.push_back(Dgq(kt2));
     }
     auto ig = singlets[0]; // gluon
     auto qqbars = singlets;
@@ -89,20 +114,76 @@ bool Convolve_Singlets(const double & t, const double & dlnz,
     for (int i=0; i<z.size(); i++)  dFF[ig][i] = deltaS[i] + deltaR[i] + DGGgrids[i]*FF[ig][i];
     // g->q
     for (auto & iq : qqbars) {
-        std::vector<double> deltaR;
-        ConvolveWithRegular(dlnz, z, FF[iq], AGQgrids, deltaR);
-        for (int i=0; i<z.size(); i++)  dFF[ig][i] += deltaR[i];
+        double mass = qcd::mass_table[iq.at(0)];
+        if (mass < 1.0 ) { // treat as light
+            std::vector<double> deltaR;
+            ConvolveWithRegular(dlnz, z, FF[iq], AGQgrids, deltaR);
+            for (int i=0; i<z.size(); i++)  dFF[ig][i] += deltaR[i] + DGQgrids[i]*FF[ig][i];;
+        } else { // g to Q + Qbar
+            double M2 = mass*mass;
+            if (Q2<4.*M2) continue; // below threshold
+            double M2overQ2 = M2/Q2;
+            double xmin = .5 * (1. - std::sqrt(1.-4.*M2overQ2));
+            double xmax = 1.-xmin;
+            std::vector<double> AGHFgrids, DGHFgrids; 
+            AGHFgrids.clear(); DGHFgrids.clear();
+            for (auto & iz : z) {
+                if (iz<xmin && iz<xmax) AGHFgrids.push_back(AgQ(iz, M2overQ2));
+                else AGHFgrids.push_back(0.0);
+                DGHFgrids.push_back(M2overQ2);
+            }
+            std::vector<double> deltaR;
+            ConvolveWithRegular(dlnz, z, FF[iq], AGHFgrids, deltaR);
+            for (int i=0; i<z.size(); i++)  dFF[ig][i] += deltaR[i] + DGHFgrids[i]*FF[ig][i];
+        }
     }
     // quark frag
-    // q->q
     for (auto & iq : qqbars) {
-        std::vector<double> deltaS;
-        ConvolveWithSingular(dlnz, zover1mz, FF[iq], RQQgrids, deltaS);
-        for (int i=0; i<z.size(); i++)  dFF[iq][i] = deltaS[i] + DQQgrids[i]*FF[iq][i];
-        // q->g
-        std::vector<double> deltaR;
-        ConvolveWithRegular(dlnz, z, FF[ig], AQGgrids, deltaR);
-        for (int i=0; i<z.size(); i++)  dFF[iq][i] += deltaR[i];
+        double mass = qcd::mass_table[iq.at(0)];
+        if (mass < 1.0 ) { // treat as light
+            // q->q
+            std::vector<double> deltaS;
+            ConvolveWithSingular(dlnz, zover1mz, FF[iq], RQQgrids, deltaS);
+            for (int i=0; i<z.size(); i++)  dFF[iq][i] = deltaS[i] + DQQgrids[i]*FF[iq][i];
+            // q->g
+            std::vector<double> deltaR;
+            ConvolveWithRegular(dlnz, z, FF[ig], AQGgrids, deltaR);
+            for (int i=0; i<z.size(); i++)  dFF[iq][i] += deltaR[i];
+        } else { 
+            // Q->Q
+            double M2 = std::pow(mass, 2);
+            double M2overQ2 = M2/Q2;
+            double xmin = M2/(M2+Q2);
+            std::vector<double> RHHgrids, AHHgrids, DHHgrids; 
+            RHHgrids.clear(); AHHgrids.clear(); DHHgrids.clear();
+            for (auto & iz : z) {
+                if (iz>xmin) {
+                    RHHgrids.push_back(RQQ(iz, M2overQ2));
+                    AHHgrids.push_back(AQQ(iz, M2overQ2));
+                }
+                else {
+                    RHHgrids.push_back(0.0);
+                    AHHgrids.push_back(0.0);
+                }
+                DHHgrids.push_back(DQQ(M2overQ2));
+            }
+            std::vector<double> deltaS, deltaR;
+            ConvolveWithSingular(dlnz, zover1mz, FF[iq], RHHgrids, deltaS);
+            ConvolveWithRegular(dlnz, z, FF[iq], AHHgrids, deltaR);
+            for (int i=0; i<z.size(); i++) dFF[iq][i] = deltaS[i] + deltaR[i] + DHHgrids[i]*FF[iq][i];
+
+            // Q->g
+            double xmax = Q2/(Q2+M2);
+            std::vector<double> AHFGgrids;
+            AHFGgrids.clear();
+            for (auto & iz : z) {
+                if (iz<xmax) AHFGgrids.push_back(AQg(iz, M2overQ2));
+                else AHFGgrids.push_back(0.0);
+            }
+            std::vector<double> deltaR2;
+            ConvolveWithRegular(dlnz, z, FF[ig], AHFGgrids, deltaR2);
+            for (int i=0; i<z.size(); i++)  dFF[iq][i] += deltaR2[i];
+        }
     }
 
     return true;
