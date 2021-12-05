@@ -1,0 +1,32 @@
+#: table_doi: 10.17182/hepdata.47195.v1/t9					
+#: name: Table 9					
+#: description: Averaged differential cross sections for the four different processes. The error is the quadratic combination of statistical and systematic error	 excluding those errors common to all momenta which affect the total cross section but not the shape.				
+					
+#: data_file: Table9.yaml					
+#: keyword reactions: E+ E- --> D0 X | E+ E- --> D*(2010)0 X | E+ E- --> D*(2010)- X | E+ E- --> D*(2010)+ X | E+ E- --> DBAR0 X | E+ E- --> D*BAR(2010)0 X | E+ E- --> D- X | E+ E- --> D+ X					
+#: keyword observables: DSIG/DX					
+#: keyword phrases: Inclusive | Single Differential Cross Section | E+ E- Scattering | Charm production					
+#: keyword cmenergies: 10.56					
+#: RE			E+ E- --> (D+ + D-) X		
+#: SQRT(S) [GeV]			10.56		
+#: SYS			For the differential spectra the data are fully corrected for detector efficiency and decay branching fractions. The first DSYS error is obtained from the RMS spread of yields for the different procedures used to calculate the spectrum. The second DSYS error is derived from the "gMC check" described in the text of the paper. These are the errors relevant to the shape of the spectra	 ie not including the systematic error common to the whole momentum range. The overall systematic error on the total cross section for each decay process is given in the following table.	
+#X(DEF=P(P=3)/PMAX)	X(DEF=P(P=3)/PMAX) LOW	X(DEF=P(P=3)/PMAX) HIGH	D(SIG)/DX [PB]	error +	error -
+0.125	0.1	0.15	0	0	0
+0.175	0.15	0.2	161	83	-83
+0.225	0.2	0.25	320	92	-92
+0.275	0.25	0.3	356	92	-92
+0.325	0.3	0.35	413	94	-94
+0.375	0.35	0.4	693	60	-60
+0.425	0.4	0.45	909	56	-56
+0.475	0.45	0.5	1042	53	-53
+0.525	0.5	0.55	1271	38	-38
+0.575	0.55	0.6	1357	38	-38
+0.625	0.6	0.65	1370	36	-36
+0.675	0.65	0.7	1291	34	-34
+0.725	0.7	0.75	1129	29	-29
+0.775	0.75	0.8	952	25	-25
+0.825	0.8	0.85	694	19	-19
+0.875	0.85	0.9	449	13	-13
+0.925	0.9	0.95	223	7	-7
+0.975	0.95	1	74	4	-4
+

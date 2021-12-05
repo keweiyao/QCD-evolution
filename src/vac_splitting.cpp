@@ -67,5 +67,5 @@ double DgQ(double M2overQ2) {
 
 double AQg(double x, double M2overQ2) {
     double onemx = 1. - x;
-    return qcd::CF * ( (1.+onemx*onemx)/x - 2.*M2overQ2) ;
+    return qcd::CF * ( (1.+onemx*onemx)/x - 2.*M2overQ2);
 }

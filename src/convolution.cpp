@@ -20,6 +20,27 @@ bool ConvolveWithSingular(const double & dlnz, const std::vector<double> & zover
     return true;
 }
 
+// convolve zD(z) with P(z) using log-spaced grid
+bool ConvolveWithSingular_endpoint(const double & dlnz, const std::vector<double> & zover1mz, const double & lnQ2,
+                          const std::vector<double> & zD, const std::vector<double> &R,
+                          std::vector<double> & zDxR) {
+    zDxR.clear();
+    int N = zD.size();
+    zDxR.resize(N);  
+    std::vector<double> NL; NL.clear();
+    for (int j=0; j<N; j++) {
+        double z = zover1mz[j]/(1.+zover1mz[j]);
+        NL.push_back(1./(1.+std::log((1.-z))/lnQ2 ));
+    }
+    for (int i=0; i<N; i++) {
+        double S1 = 0., S2 = 0.;
+        for (int j=i; j<N; j++) S1 += ( zD[N-1-j+i]*R[j] - zD[i]*R[N-1] ) * zover1mz[j] * NL[j];
+        for (int j=0; j<i; j++) S2 += zover1mz[j] * NL[j];
+        zDxR[i] = (S1 - S2*zD[i]*R[N-1])*dlnz;
+    }
+    return true;
+}
+
 bool ConvolveWithRegular(const double & dlnz, const std::vector<double> & z,
                           const std::vector<double> & zD, const std::vector<double> &A,
                           std::vector<double> & zDxR) {
@@ -74,9 +95,11 @@ bool Convolve_Valance(const double & t, const double & dlnz,
                 DQQgrids.push_back(DQQ(M2overQ2));
             }
             std::vector<double> deltaS, deltaR;
-            ConvolveWithSingular(dlnz, zover1mz, FF[it], RQQgrids, deltaS);
+            ConvolveWithSingular_endpoint(dlnz, zover1mz, std::log(Q2/qcd::Lambda2), FF[it], RQQgrids, deltaS);
             ConvolveWithRegular(dlnz, z, FF[it], AQQgrids, deltaR);
-            for (int i=0; i<z.size(); i++) dFF[it][i] = deltaS[i] + deltaR[i] + DQQgrids[i]*FF[it][i];
+            for (int i=0; i<z.size(); i++) {
+                dFF[it][i] = deltaS[i] + deltaR[i] + DQQgrids[i]*FF[it][i];
+            }
         }
     }
     return true;
@@ -168,7 +191,7 @@ bool Convolve_Singlets(const double & t, const double & dlnz,
                 DHHgrids.push_back(DQQ(M2overQ2));
             }
             std::vector<double> deltaS, deltaR;
-            ConvolveWithSingular(dlnz, zover1mz, FF[iq], RHHgrids, deltaS);
+            ConvolveWithSingular_endpoint(dlnz, zover1mz, std::log(Q2/qcd::Lambda2), FF[iq], RHHgrids, deltaS);
             ConvolveWithRegular(dlnz, z, FF[iq], AHHgrids, deltaR);
             for (int i=0; i<z.size(); i++) dFF[iq][i] = deltaS[i] + deltaR[i] + DHHgrids[i]*FF[iq][i];
 
