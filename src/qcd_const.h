@@ -1,3 +1,6 @@
+#ifndef QCD_CONST_H
+#define QCD_CONST_H
+
 #include <map>
 #include <string>
 namespace qcd{
@@ -15,3 +18,5 @@ namespace qcd{
    extern const double b0;
    extern std::map<char, double> mass_table;
 }
+
+#endif

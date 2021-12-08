@@ -1,3 +1,6 @@
+#ifndef CONVOLUTION_H
+#define CONVOLUTION_H
+
 #include <vector>
 #include <map>
 #include <string>
@@ -20,3 +23,5 @@ bool Convolve_Valance(const double & t, const double & dlnz,
 bool Convolve_Singlets(const double & t, const double & dlnz,
                       const std::vector<double> & z, const std::vector<double> & zover1mz, 
                       FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets);
+
+#endif

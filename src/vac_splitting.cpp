@@ -34,10 +34,14 @@ double Dgq(double kt2) {
 
 // (kt2+1mx2m2) * dP/(d(kt2+1mx2m2) dx)
 double RQQ(double x, double M2overQ2) {
+    double xmin = 1./(1.+1./M2overQ2);
+    if (x<xmin) return 0.;
     return qcd::CF * (1.+x*x) ;
 }
 
 double AQQ(double x, double M2overQ2) {
+    double xmin = 1./(1.+1./M2overQ2);
+    if (x<xmin) return 0.;
     double onemx = 1.-x;
     return  - qcd::CF * 2. * M2overQ2 ;
 }

@@ -1,3 +1,6 @@
+#ifndef VAC_SPLITTING_H
+#define VAC_SPLITTING_H
+
 // kt2 * dP/(dkt2 dx)
 // Conventions: 
 //   P(x) = R(x) / [(1-x)]_+ + A(x) + D(x) delta(1-x)
@@ -19,3 +22,5 @@ double AgQ(double x, double M2overQ2);
 double DgQ(double M2overQ2);
 // (kt2+x2m2) * dP/(d(kt2+x2m2) dx)
 double AQg(double x, double M2overQ2);
+
+#endif

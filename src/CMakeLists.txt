@@ -4,6 +4,7 @@ add_library(${LIBRARY_NAME} STATIC
 vac_splitting.cpp
 qcd_const.cpp
 convolution.cpp
+medium_correction.cpp
 	)
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES PREFIX "")
