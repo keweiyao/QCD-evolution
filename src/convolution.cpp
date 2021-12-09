@@ -2,7 +2,7 @@
 #include "convolution.h"
 #include "vac_splitting.h"
 #include "medium_correction.h"
-#include "table_nd.h"
+#include "interp_nd.h"
 #include <cmath>
 #include <iostream>
 
@@ -10,7 +10,7 @@ double Emin = 5., Emax = 1000.;
 double kmin = .2, kmax = Emax;
 double Zmin = .2/Emax; 
 double Zmax = 1.-Zmin;
-double E = 6;
+double E = 20;
 MediumCorrections MSP(10,101,101,
                   std::log(Emin), std::log(Emax), //lnE
                   std::log(kmin), std::log(kmax), //lnkT or lnQ
@@ -108,17 +108,19 @@ bool Convolve_Valance(const double & t, const double & dlnz,
                 double kt2 = iz*(1.-iz)*Q2 - std::pow(1.-iz,2)*M2;
                 double kt2_over_M2 = kt2/M2;
                 if (iz>xmin) {
-                    RQQgrids.push_back(RQQ(iz, M2overQ2));
+                    double MedRQQ = med? MSP.Get("Rbb", {E, kt2, iz}):0.0;
+                    RQQgrids.push_back(RQQ(iz, M2overQ2)+MedRQQ/asbar);
                     AQQgrids.push_back(AQQ(iz, M2overQ2));
                 }
                 else {
                     RQQgrids.push_back(0.0);
                     AQQgrids.push_back(0.0);
                 }
-                DQQgrids.push_back(DQQ(M2overQ2));
+                double MedDQQ = med? MSP.Get("Dbb", {E, Q2}):0.0;
+                DQQgrids.push_back(DQQ(M2overQ2)+MedDQQ/asbar);
             }
             std::vector<double> deltaS, deltaR;
-            ConvolveWithSingular_endpoint(dlnz, zover1mz, lnQ2, FF[it], RQQgrids, deltaS);
+            ConvolveWithSingular(dlnz, zover1mz, FF[it], RQQgrids, deltaS);
             ConvolveWithRegular(dlnz, z, FF[it], AQQgrids, deltaR);
             for (int i=0; i<z.size(); i++) 
                 dFF[it][i] = deltaS[i] + deltaR[i] + DQQgrids[i]*FF[it][i];

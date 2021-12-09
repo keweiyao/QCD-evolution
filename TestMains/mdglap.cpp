@@ -19,13 +19,13 @@ double FF_Lund(double z, double M){
 
 
 int main() {
-    double Q2min = std::pow(.4, 2);
-    double Q2max = std::pow(6, 2);
+    double Q2min = std::pow(0.5, 2);
+    double Q2max = std::pow(20, 2);
     double tmin = qcd::b0*std::log(std::log(Q2min/qcd::Lambda2));
     double tmax = qcd::b0*std::log(std::log(Q2max/qcd::Lambda2));
     int Nt = 51;
     double dt = (tmax-tmin)/Nt;
-    int Nz = 4001;
+    int Nz = 1001;
     double zmin = 1e-2;
     double zmax = .9999;
     double dlnz = std::log(zmax/zmin)/(Nz-1);
@@ -61,9 +61,10 @@ int main() {
     for (auto & it : comp) {
         for (int i=0; i<Nz; i++) dFF[it][i] = 0.;
 
-        if (it == "uv") {
+        if (it == "bv") {
             //std::ifstream ff("/home/weiyaoke/Documents/DGLAP/FF/ic.dat");
-            for (int i=0; i<Nz; i++) FF[it][i] = 1.0;
+            double M = qcd::mass_table[it.at(0)];
+            for (int i=0; i<Nz; i++) FF[it][i] = z[i]*FF_Lund(z[i],M);
         }
         else for (int i=0; i<Nz; i++) FF[it][i] = 0.0;
     }
