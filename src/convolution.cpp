@@ -1,19 +1,23 @@
 #include "qcd_const.h"
 #include "convolution.h"
 #include "vac_splitting.h"
+#include "medium_correction.h"
+#include "table_nd.h"
 #include <cmath>
 #include <iostream>
 
 double Emin = 5., Emax = 1000.;
-double kmin = .2, kmax = Emaxs;
-double Zmin = .2/Emax; double Zmax = 1.-Zmin;
-
+double kmin = .2, kmax = Emax;
+double Zmin = .2/Emax; 
+double Zmax = 1.-Zmin;
+double E = 6;
 MediumCorrections MSP(10,101,101,
                   std::log(Emin), std::log(Emax), //lnE
-                  std::log(kmin*kmin), std::log(kmax*kmax), //lnkT2 or lnQ2
+                  std::log(kmin), std::log(kmax), //lnkT or lnQ
                   std::log(Zmin/(1.-Zmin)), std::log(Zmax/(1.-Zmax)), //ln[z/(1-z)]
-                  "./Tables/"
+                  "/home/weiyaoke/Documents/SplittingDecomposedGirdCXX/PbPb5020/0-5/g-1.8/"
                  );
+
 
 // convolve zD(z) with P(z) using log-spaced grid
 bool ConvolveWithSingular(const double & dlnz, const std::vector<double> & zover1mz,
@@ -73,7 +77,7 @@ bool ConvolveWithRegular(const double & dlnz, const std::vector<double> & z,
 
 bool Convolve_Valance(const double & t, const double & dlnz,
                       const std::vector<double> & z, const std::vector<double> & zover1mz, 
-                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> flavors) {
+                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> flavors, bool med) {
     double lnQ2 = std::exp(t/qcd::b0);
     double Q2 = qcd::Lambda2*std::exp(lnQ2);
     double asbar = qcd::b0/lnQ2;  // alphas(Q2)/2/pi
@@ -86,12 +90,13 @@ bool Convolve_Valance(const double & t, const double & dlnz,
             std::vector<double> Rgrids, Dgrids; Rgrids.clear(); Dgrids.clear();
             for (auto & iz : z) {
                 double kt2 = iz*(1-iz)*Q2;
-                double MedRqq = MSP.Get("Rqq", {E, kt2, iz}),
-                       MedDqq = MSP.Get("Dqq", {E, kt2});
-                Rgrids.push_back(Rqq(iz, kt2) + MedRqq/asbar );
+                //std::cout << "z" << kt2 << "" << MSP.Get("Rqq", {E, kt2, iz});
+                double MedRqq = med? MSP.Get("Rqq", {E, kt2, iz}):0.0,
+                       MedDqq = med? MSP.Get("Dqq", {E, Q2}):0.0;
+                Rgrids.push_back((Rqq(iz, kt2)+MedRqq/asbar) );
                 Dgrids.push_back(Dqq(kt2) + MedDqq/asbar);
             }
-            ConvolveWithSingular_endpoint(dlnz, zover1mz, lnQ2, FF[it], Rgrids, deltaS);
+            ConvolveWithSingular(dlnz, zover1mz, FF[it], Rgrids, deltaS);
             for (int i=0; i<z.size(); i++) dFF[it][i] = deltaS[i] + Dgrids[i]*FF[it][i];
         } else { // heavy quark
             double M2 = std::pow(mass, 2);
@@ -100,12 +105,11 @@ bool Convolve_Valance(const double & t, const double & dlnz,
             std::vector<double> RQQgrids, AQQgrids, DQQgrids; 
             RQQgrids.clear(); AQQgrids.clear(); DQQgrids.clear();
             for (auto & iz : z) {
-                double kt2_over_M2 = iz*(1.-iz)*Q2/M2 - std::pow(1.-iz,2);
+                double kt2 = iz*(1.-iz)*Q2 - std::pow(1.-iz,2)*M2;
+                double kt2_over_M2 = kt2/M2;
                 if (iz>xmin) {
-                    double MedRQQ = MSP.Get("Rqq", {E, kt2, iz}),
-                           MedDQQ = MSP.Get("Dqq", {E, kt2});
-                    RQQgrids.push_back(RQQ(iz, M2overQ2) + MedRQQ/asbar );
-                    AQQgrids.push_back(AQQ(iz, M2overQ2) + MedDQQ/asbar);
+                    RQQgrids.push_back(RQQ(iz, M2overQ2));
+                    AQQgrids.push_back(AQQ(iz, M2overQ2));
                 }
                 else {
                     RQQgrids.push_back(0.0);
@@ -125,7 +129,7 @@ bool Convolve_Valance(const double & t, const double & dlnz,
 
 bool Convolve_Singlets(const double & t, const double & dlnz,
                       const std::vector<double> & z, const std::vector<double> & zover1mz, 
-                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets) {
+                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets, bool med) {
     double lnQ2 = std::exp(t/qcd::b0);
     double Q2 = qcd::Lambda2*std::exp(lnQ2);
     std::vector<double> RGGgrids, RQQgrids, AGGgrids, AQGgrids, 

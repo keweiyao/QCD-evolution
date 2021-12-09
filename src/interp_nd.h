@@ -79,6 +79,10 @@ public:
     double get_with_linear_index(int k) { return data_[k]; }
     // Interpolating at a given array of physical varaibles X = [x1, x2, ..., xD]
     double interpolate(std::vector<double> Xinput) {
+       // 
+       for(auto i=0; i<dim_; i++){
+           if ((Xinput[i] < grid_min_[i]) || (Xinput[i] > grid_max_[i]) ) return 0.;
+       }
        // First, find the unit cube that contains the input point
        std::vector<int> start_index; start_index.resize(dim_);
        std::vector<double> w; w.resize(dim_);

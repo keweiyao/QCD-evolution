@@ -19,9 +19,9 @@ bool ConvolveWithDelta(const std::vector<double> & zD, const double D, std::vect
 
 bool Convolve_Valance(const double & t, const double & dlnz,
                       const std::vector<double> & z, const std::vector<double> & zover1mz, 
-                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> flavors);
+                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> flavors, bool med);
 bool Convolve_Singlets(const double & t, const double & dlnz,
                       const std::vector<double> & z, const std::vector<double> & zover1mz, 
-                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets);
+                      FFgrids & FF, FFgrids & dFF, std::vector<std::string> singlets, bool med);
 
 #endif

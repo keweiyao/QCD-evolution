@@ -95,7 +95,7 @@ add_subdirectory(src)
 include_directories(src)
 
 
-foreach(App "test")
+foreach(App "mdglap")
 	add_executable(${App} ./TestMains/${App}.cpp)
 	target_link_libraries(${App} ${LIBRARY_NAME})
 	install(TARGETS ${App} DESTINATION bin)
