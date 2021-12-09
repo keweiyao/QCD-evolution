@@ -19,21 +19,20 @@ double FF_Lund(double z, double M){
 
 
 int main() {
-    double Q2min = std::pow(0.5, 2);
-    double Q2max = std::pow(20, 2);
+    double Q2min = std::pow(.5, 2);
+    double Q2max = std::pow(92/2, 2);
     double tmin = qcd::b0*std::log(std::log(Q2min/qcd::Lambda2));
     double tmax = qcd::b0*std::log(std::log(Q2max/qcd::Lambda2));
     int Nt = 51;
     double dt = (tmax-tmin)/Nt;
     int Nz = 1001;
     double zmin = 1e-2;
-    double zmax = .9999;
+    double zmax = .999;
     double dlnz = std::log(zmax/zmin)/(Nz-1);
-    std::vector<double> z, zover1mz; z.clear(), zover1mz.clear();
+    std::vector<double> z; z.clear();
     for (int i=0; i<Nz; i++) {
         double it = zmin*std::exp(i*dlnz);
         z.push_back(it);
-        zover1mz.push_back(it/(1.-it));
     }
     
     std::vector<double> temp; temp.resize(Nz);
@@ -50,7 +49,7 @@ int main() {
                                       "ccbar","bbbar"};
 
     
-    for (int i=0; i<2; i++){
+    for (int i=0; i<1; i++){
 
     FFgrids FF, dFF;
     for (auto & it : comp) {
@@ -85,25 +84,25 @@ int main() {
         // RK-4
         FFgrids k1, k2, k3, k4, FF1=FF, FF2=FF, FF3=FF;
 
-        Convolve_Valance(t, dlnz, z, zover1mz, FF, dFF, nonsinglets, med);
+        Convolve_Valance(t, dlnz, z, FF, dFF, nonsinglets, med);
         k1 = dFF;        
         for (auto & it : nonsinglets)
             for (int i=0; i<Nz; i++) 
                 FF1[it][i] += k1[it][i]*dt/2.;
 
-        Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF1, dFF, nonsinglets, med);
+        Convolve_Valance(t+dt/2., dlnz, z, FF1, dFF, nonsinglets, med);
         k2 = dFF;
         for (auto & it : nonsinglets)
             for (int i=0; i<Nz; i++) 
                 FF2[it][i] += k2[it][i]*dt/2.;
 
-        Convolve_Valance(t+dt/2., dlnz, z, zover1mz, FF2, dFF, nonsinglets, med);
+        Convolve_Valance(t+dt/2., dlnz, z, FF2, dFF, nonsinglets, med);
         k3 = dFF;
         for (auto & it : nonsinglets)
             for (int i=0; i<Nz; i++) 
                 FF3[it][i] += k3[it][i]*dt;
 
-        Convolve_Valance(t+dt, dlnz, z, zover1mz, FF3, dFF, nonsinglets, med);
+        Convolve_Valance(t+dt, dlnz, z, FF3, dFF, nonsinglets, med);
         k4 = dFF;
 
         for (auto & it : nonsinglets)
@@ -119,25 +118,25 @@ int main() {
         double t = tmin+i*dt;
         FFgrids k1, k2, k3, k4, FF1=FF, FF2=FF, FF3=FF;
 
-        Convolve_Singlets(t, dlnz, z, zover1mz, FF, dFF, singlets, med);
+        Convolve_Singlets(t, dlnz, z, FF, dFF, singlets, med);
         k1 = dFF;
         for (auto & it : singlets)
             for (int i=0; i<Nz; i++)
                 FF1[it][i] += k1[it][i]*dt/2.;
 
-        Convolve_Singlets(t+dt/2., dlnz, z, zover1mz, FF1, dFF, singlets, med);
+        Convolve_Singlets(t+dt/2., dlnz, z, FF1, dFF, singlets, med);
         k2 = dFF;
         for (auto & it : singlets)
             for (int i=0; i<Nz; i++)
                 FF2[it][i] += k2[it][i]*dt/2.;
 
-        Convolve_Singlets(t+dt/2., dlnz, z, zover1mz, FF2, dFF, singlets, med);
+        Convolve_Singlets(t+dt/2., dlnz, z, FF2, dFF, singlets, med);
         k3 = dFF;
         for (auto & it : singlets)
             for (int i=0; i<Nz; i++)
                 FF3[it][i] += k3[it][i]*dt;
 
-        Convolve_Singlets(t+dt, dlnz, z, zover1mz, FF3, dFF, singlets, med);
+        Convolve_Singlets(t+dt, dlnz, z, FF3, dFF, singlets, med);
         k4 = dFF;
 
         for (auto & it : singlets)
