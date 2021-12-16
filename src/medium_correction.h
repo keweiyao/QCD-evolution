@@ -76,8 +76,10 @@ public:
     path_(path),
     D3_(3), D2_(2),
     channels_({  "Rqq","Rcc","Rbb","Rgg",
-                 "Agg","Agq","Agc","Agb","Agg","Agc","Agb",
-                 "Dqq","Dcc","Dbb","Dgg"}) 
+                 "Aqg","Acg","Abg",
+                 "Agg","Agq","Agc","Agb",
+                 "Dqq","Dcc","Dbb","Dgg",
+                 "Dgq","Dgc","Dgb"}) 
     {
         // prepare tables
         for (auto & it : channels_) {
@@ -110,9 +112,9 @@ public:
             transformed_input[0] = std::log(input[0]); // lnE
             transformed_input[1] = std::log(input[1])/2.; //lnkT or lnQ
             if (TableDim==D3_) transformed_input[2] = std::log(input[2]/(1.-input[2])); //ln[z/(1-z)]
-            return Tables[channel].interpolate(transformed_input);
+            return M_PI * Tables[channel].interpolate(transformed_input);
         } else {
-            std::cout << "warning: you are looking for a channel that does not exist in medium correction, return 0.0" << std::endl;
+            std::cout << "warning: " << channel << " does not exist in medium correction, return 0.0" << std::endl;
             return 0.;
         }
     }

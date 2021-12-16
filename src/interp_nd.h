@@ -88,7 +88,7 @@ public:
        std::vector<double> w; w.resize(dim_);
        for(auto i=0; i<dim_; i++) {
            double x = (Xinput[i] - grid_min_[i])/step_[i];
-           x = std::min(std::max(x, 0.), shape_[i]-1.);
+           x = std::min(std::max(x, 0.), shape_[i]-2.);
            size_t nx = size_t(std::floor(x));
            double rx = x - nx;
            start_index[i] = nx;

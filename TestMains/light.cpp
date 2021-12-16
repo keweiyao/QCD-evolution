@@ -18,7 +18,7 @@ std::string D2S(double value) {
 
 
 int main(int argc, char * argv[]) {
-    std::vector<std::string> POIs{"D"}; // particle of interests, inclusive hadron, D meson, B meson
+    std::vector<std::string> POIs{"h"}; // particle of interests, inclusive hadron, D meson, B meson
 
     //std::cout << "Alphas check: " << alphas(1.0) << " "  << alphas(10*10) << " " << alphas(91.7*91.7) << std::endl;
     std::string A = argv[1], B = argv[2], Sqrts = argv[3], cen=argv[4], gs=argv[5];
@@ -46,15 +46,15 @@ int main(int argc, char * argv[]) {
     int Nz = 3001;
     double zmin=1e-2, zmax=.9999;
     mdglap solver(Nz, zmin, zmax, TableFolder);
-
+    /*
     // Evolve the IC to starting scale
-    /*for (auto & poi : POIs) {
+    for (auto & poi : POIs) {
         std::stringstream sf1, sf2, sf3;
         sf1  << "./" << poi << "-Q0.dat"; // initial condition
         sf2  << "./" << poi << "-Q-vac.dat"; // vac frag
         std::ofstream f1(sf1.str()), f2(sf2.str());
-            double tmin = Q22t(0.16);
-            double tmax = Q22t(1.3);
+            double tmin = Q22t(1.0);
+            double tmax = Q22t(0.4*0.4);
             int Nt = 50;//int(std::abs(tmax-tmin)/a_reasonable_dt);
             double dt = (tmax-tmin)/Nt;
             solver.initialize(poi);

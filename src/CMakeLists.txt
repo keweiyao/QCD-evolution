@@ -1,10 +1,11 @@
 # compile everything except the main source file into a statis lib to be linked
 # to the main executable
 add_library(${LIBRARY_NAME} STATIC
-vac_splitting.cpp
 qcd_const.cpp
-convolution.cpp
+vac_splitting.cpp
 medium_correction.cpp
+convolution.cpp
+evolution.cpp
 	)
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES PREFIX "")

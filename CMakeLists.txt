@@ -3,9 +3,14 @@ project(SimpleDGLAP CXX)
 
 
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++11" CXX11)
-if(NOT CXX11)
-  message(FATAL_ERROR "Your compiler does not support C++11")
+check_cxx_compiler_flag("-std=c++17" CXX17)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+link_libraries(stdc++fs)
+
+if(NOT CXX17)
+  message(FATAL_ERROR "Your compiler does not support C++17")
 endif()
 
 # default build type: Release
@@ -53,7 +58,7 @@ endif()
 
 # disable silly clang warnings
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-missing-braces -Wno-c++11-narrowing")
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-missing-braces -Wno-c++17-narrowing")
 endif()
 
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Werror")
@@ -62,7 +67,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   # Check for sanitizer support.
@@ -95,7 +99,7 @@ add_subdirectory(src)
 include_directories(src)
 
 
-foreach(App "mdglap")
+foreach(App "light" "mdglap")
 	add_executable(${App} ./TestMains/${App}.cpp)
 	target_link_libraries(${App} ${LIBRARY_NAME})
 	install(TARGETS ${App} DESTINATION bin)
