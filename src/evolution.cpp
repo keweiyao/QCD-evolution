@@ -17,6 +17,16 @@ double FF_Bowler(double z, double M, double akT){
     return std::pow(1.-z,a)/pow(z,1+b*Mt2) * std::exp(b*Mt2*(1.-1./z));
 }
 
+double G2Etac(double z){
+    double M = qcd::mass_table['c'];
+    double Q = 2*M;
+    double R0sq = std::pow(0.8,3);
+    double a = alphas(Q*Q);
+    double norm = R0sq/std::pow(M,3)*a*a/24./M_PI;
+    double shape = 3.*z - 2.*z*z + 2.*(1-z)*std::log(1-z);
+    return norm * shape;
+}
+
 void mdglap::initialize(std::string poi) {
     for (auto & it : comp) for (auto & iit : dZFFdt[it]) iit=0.; // dFF=0
     for (auto & it : comp) for (auto & iit : ZFF[it]) iit=0.; // FF=0
@@ -39,6 +49,9 @@ void mdglap::initialize(std::string poi) {
             fi.close();
         };
     }
+    if (poi == std::string("etac") )
+        for (int iz=0; iz<Nz; iz++)
+            ZFF["g"][iz] = z[iz] * G2Etac(z[iz]);
 }
 
 void mdglap::evolve(double tmin, double tmax, double dt, double Nt) {
